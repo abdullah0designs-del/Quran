@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>القرآن الكريم | الإصدار الاحترافي</title>
+    
+    <!-- مكتبات التصميم والأيقونات -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- الخطوط -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Cairo:wght@400;600;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- إعدادات Tailwind -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f2fdf7', 100: '#e1f9eb', 500: '#14b868', 700: '#0c874b', 900: '#074f2b', dark: '#042e18' },
+                        gold: { DEFAULT: '#d4af37', dark: '#b5952f', light: '#f9f1d8' },
+                        mushaf: { bg: '#fbf8f1', paper: '#f4ecd8' },
+                        dark: { bg: '#121212', paper: '#1e1e1e', text: '#e0e0e0' }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        ruqaa: ['Aref Ruqaa', 'serif'],
+                        amiri: ['Amiri Quran', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- الخط العثماني --- */
+        @font-face {
+            font-family: 'Uthmanic';
+            src: url('https://cdn.rawgit.com/quran/quran.com-images/master/fonts/uthmani.woff2') format('woff2'),
+                 url('https://cdn.rawgit.com/quran/quran.com-images/master/fonts/uthmani.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        :root {
+            --quran-font: 'Uthmanic', 'Amiri Quran', serif;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: theme('colors.brand.50');
+            color: theme('colors.brand.900');
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .dark body {
+            background-color: theme('colors.dark.bg');
+            color: theme('colors.dark.text');
+        }
+
+        /* --- تصميم ورقة المصحف --- */
+        .mushaf-view {
+            background-color: theme('colors.mushaf.bg');
+            background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100" height="100" filter="url(%23noise)" opacity="0.05"/></svg>');
+            border: 2px solid theme('colors.mushaf.paper');
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08), inset 0 0 60px rgba(212, 175, 55, 0.1);
+            position: relative;
+        }
+        .dark .mushaf-view {
+            background-color: theme('colors.dark.paper');
+            background-image: none;
+            border-color: #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 60px rgba(0,0,0,0.2);
+        }
+
+        /* إطار المصحف المزخرف */
+        .mushaf-frame {
+            position: absolute; top: 10px; bottom: 10px; left: 10px; right: 10px;
+            border: 2px solid theme('colors.gold.DEFAULT');
+            border-radius: 8px; pointer-events: none;
+        }
+        .mushaf-frame::before, .mushaf-frame::after {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            border: 1px solid theme('colors.brand.700'); top: -6px; left: -6px; padding: 5px;
+            border-radius: 10px;
+        }
+        .dark .mushaf-frame::before, .dark .mushaf-frame::after { border-color: theme('colors.gold.dark'); }
+
+        /* --- الآيات والخطوط --- */
+        .quran-text {
+            font-family: var(--quran-font);
+            text-align: justify;
+            text-justify: inter-word;
+            line-height: 2.2;
+            direction: rtl;
+        }
+
+        .ayah {
+            display: inline;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+            padding: 2px;
+        }
+        
+        .ayah:hover { background-color: rgba(212, 175, 55, 0.15); }
+        .dark .ayah:hover { background-color: rgba(212, 175, 55, 0.25); }
+        
+        /* تظليل التلاوة */
+        .ayah.playing {
+            background-color: rgba(212, 175, 55, 0.4);
+            color: theme('colors.brand.900');
+            font-weight: bold;
+        }
+        .dark .ayah.playing { color: theme('colors.gold.light'); background-color: rgba(212, 175, 55, 0.3); }
+
+        /* وضع الاختبار (إخفاء الحفظ) */
+        .test-mode .ayah-text {
+            color: transparent;
+            text-shadow: 0 0 15px rgba(0,0,0,0.5);
+            transition: all 0.3s;
+        }
+        .dark .test-mode .ayah-text { text-shadow: 0 0 15px rgba(255,255,255,0.5); }
+        .test-mode .ayah:hover .ayah-text, .test-mode .ayah.revealed .ayah-text {
+            color: inherit;
+            text-shadow: none;
+        }
+
+        /* --- علامة نهاية الآية (مزخرفة) --- */
+        .ayah-end {
+            display: inline-flex; align-items: center; justify-content: center;
+            position: relative; margin: 0 6px; width: 40px; height: 40px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 5 L85 25 L85 75 L50 95 L15 75 L15 25 Z" fill="none" stroke="%23d4af37" stroke-width="4"/><circle cx="50" cy="50" r="35" fill="none" stroke="%23d4af37" stroke-width="2" stroke-dasharray="4 4"/></svg>') center/contain no-repeat;
+            vertical-align: -10px;
+        }
+        .ayah-end-num {
+            font-family: 'Cairo', sans-serif; font-size: 13px; font-weight: bold;
+            color: theme('colors.brand.900'); padding-top: 2px;
+        }
+        .dark .ayah-end-num { color: theme('colors.gold.DEFAULT'); }
+
+        /* علامات الأجزاء والأحزاب */
+        .quran-marker {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin: 30px 0; clear: both;
+        }
+        .quran-marker::before, .quran-marker::after {
+            content: ''; flex-grow: 1; height: 1px; background: theme('colors.gold.DEFAULT'); opacity: 0.5;
+        }
+        .marker-text {
+            font-family: 'Aref Ruqaa', serif; color: theme('colors.gold.DEFAULT');
+            border: 1px solid theme('colors.gold.DEFAULT'); padding: 2px 15px; border-radius: 20px;
+            font-size: 14px; background: rgba(212, 175, 55, 0.05);
+        }
+
+        /* --- القوائم السفلية (Bottom Navigation & Player) --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05); z-index: 50;
+            border-top: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .dark .bottom-nav { background: rgba(30, 30, 30, 0.95); border-top-color: #444; }
+        
+        .nav-item {
+            display: flex; flex-direction: column; items-center; justify-content: center;
+            color: theme('colors.gray.400'); transition: all 0.3s; padding: 10px;
+            font-size: 12px; font-weight: 600; cursor: pointer; text-align: center;
+        }
+        .nav-item.active { color: theme('colors.brand.500'); }
+        .nav-item i { font-size: 20px; margin-bottom: 4px; }
+        .dark .nav-item.active { color: theme('colors.gold.DEFAULT'); }
+
+        /* شريط مشغل الصوت */
+        .audio-player {
+            position: fixed; bottom: 65px; left: 0; right: 0;
+            background: theme('colors.brand.900'); color: white;
+            padding: 10px 15px; z-index: 49; transform: translateY(150%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+        }
+        .dark .audio-player { background: theme('colors.dark.paper'); border-top: 1px solid theme('colors.gold.dark'); }
+        .audio-player.active { transform: translateY(0); }
+
+        /* نوافذ منبثقة (Modals) */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            z-index: 100; display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal-content {
+            background: white; border-radius: 20px; width: 90%; max-width: 400px;
+            padding: 20px; transform: scale(0.9); transition: transform 0.3s;
+            max-height: 80vh; overflow-y: auto;
+        }
+        .dark .modal-content { background: theme('colors.dark.paper'); color: white; }
+        .modal-overlay.show .modal-content { transform: scale(1); }
+
+        /* لودر إسلامي */
+        .islamic-loader {
+            width: 60px; height: 60px; border: 4px solid transparent;
+            border-top-color: theme('colors.gold.DEFAULT'); border-bottom-color: theme('colors.brand.500');
+            border-radius: 50%; animation: spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
+
+        /* إخفاء شريط التمرير */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: theme('colors.gold.DEFAULT'); border-radius: 10px; }
+        
+        /* تأثيرات التحميل */
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="pb-32">
+
+    <!-- شريط الرأس العلوي -->
+    <header class="bg-white dark:bg-[#1e1e1e] shadow-sm sticky top-0 z-40 transition-colors">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-brand-700 dark:text-gold">
+                    <i class="fa-solid fa-book-quran text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-ruqaa text-2xl font-bold text-brand-900 dark:text-gold leading-none">مصحف النور</h1>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">الإصدار الاحترافي</span>
+                </div>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="toggleTestMode()" id="test-mode-btn" class="hidden w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gold hover:text-white transition" title="وضع اختبار الحفظ">
+                    <i class="fa-solid fa-eye-slash"></i>
+                </button>
+                <button onclick="openModal('settings-modal')" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gold hover:text-white transition">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- الإشعارات (Toast) -->
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-brand-900 text-white px-6 py-3 rounded-full shadow-2xl z-50 flex items-center gap-3 transition-all duration-300 opacity-0 -translate-y-10 pointer-events-none">
+        <i class="fa-solid fa-bell text-gold"></i>
+        <span id="toast-msg" class="font-semibold text-sm"></span>
+    </div>
+
+    <!-- مؤشر التحميل الرئيسي -->
+    <div id="loader" class="fixed inset-0 bg-white/90 dark:bg-dark-bg/90 z-[100] flex flex-col items-center justify-center hidden">
+        <div class="islamic-loader mb-4"></div>
+        <p class="font-ruqaa text-2xl text-brand-900 dark:text-gold">جاري التلاوة...</p>
+    </div>
+
+    <!-- ================== المحتوى الرئيسي (Views) ================== -->
+    <main class="container mx-auto px-2 md:px-4 py-6 max-w-5xl">
+        
+        <!-- 1. الشاشة الرئيسية (الفهرس) -->
+        <div id="view-home" class="view-section">
+            <!-- التذكير اليومي -->
+            <div class="bg-gradient-to-r from-brand-700 to-brand-500 dark:from-brand-900 dark:to-brand-700 rounded-2xl p-6 text-white mb-8 shadow-lg relative overflow-hidden">
+                <div class="absolute -left-10 -top-10 opacity-20 text-9xl"><i class="fa-solid fa-mosque"></i></div>
+                <div class="relative z-10">
+                    <h2 class="text-2xl font-ruqaa mb-2">السلام عليكم ورحمة الله</h2>
+                    <p class="text-brand-100 text-sm mb-4" id="daily-streak-msg">لم تقرأ وردك اليومي بعد، ابدأ الآن!</p>
+                    <button onclick="continueReading()" class="bg-gold text-brand-900 font-bold px-5 py-2 rounded-full text-sm hover:scale-105 transition shadow-md">
+                        متابعة القراءة <i class="fa-solid fa-arrow-left ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <h3 class="font-ruqaa text-2xl text-brand-900 dark:text-gold mb-4 border-b-2 border-brand-100 dark:border-gray-800 pb-2">فهرس السور</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" id="surahs-grid">
+                <!-- يُملأ برمجياً -->
+            </div>
+        </div>
+
+        <!-- 2. شاشة البحث -->
+        <div id="view-search" class="view-section hidden">
+            <h2 class="font-ruqaa text-3xl text-brand-900 dark:text-gold mb-6 text-center">البحث المتقدم</h2>
+            
+            <div class="relative mb-6">
+                <input type="text" id="search-input" placeholder="ابحث بكلمة، جملة، أو اسم سورة..." 
+                       class="w-full bg-white dark:bg-[#1e1e1e] border-2 border-brand-100 dark:border-gray-700 rounded-2xl px-5 py-4 text-lg focus:outline-none focus:border-brand-500 dark:focus:border-gold transition shadow-sm pr-12 text-brand-900 dark:text-white">
+                <i class="fa-solid fa-search absolute right-5 top-5 text-gray-400 text-lg"></i>
+                <button onclick="performSearch()" class="absolute left-2 top-2 bottom-2 bg-brand-500 hover:bg-brand-700 text-white px-6 rounded-xl transition font-bold">بحث</button>
+            </div>
+
+            <div id="search-stats" class="text-sm text-gray-500 mb-4 text-center"></div>
+            <div id="search-results" class="space-y-4">
+                <!-- نتائج البحث -->
+                <div class="text-center text-gray-400 mt-10">
+                    <i class="fa-solid fa-book-open text-5xl mb-3 opacity-20"></i>
+                    <p>أدخل كلمة للبحث في آيات الذكر الحكيم</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. شاشة المفضلات -->
+        <div id="view-bookmarks" class="view-section hidden">
+            <h2 class="font-ruqaa text-3xl text-brand-900 dark:text-gold mb-6 text-center">المحفوظات والمفضلات</h2>
+            
+            <div class="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+                <button onclick="switchBookmarkTab('surahs')" id="tab-surahs" class="flex-1 py-3 font-bold text-brand-500 border-b-2 border-brand-500">السور المحفوظة</button>
+                <button onclick="switchBookmarkTab('ayahs')" id="tab-ayahs" class="flex-1 py-3 font-bold text-gray-500 dark:text-gray-400 border-b-2 border-transparent">الآيات المفضلة</button>
+            </div>
+
+            <div id="bookmarks-container" class="space-y-3">
+                <!-- يُملأ برمجياً -->
+            </div>
+        </div>
+
+        <!-- 4. شاشة القراءة (المصحف) -->
+        <div id="view-mushaf" class="view-section hidden">
+            <!-- أدوات تحكم علوية للسورة -->
+            <div class="flex justify-between items-center mb-4 bg-white dark:bg-dark-paper p-3 rounded-xl shadow-sm">
+                <button onclick="switchView('home')" class="text-gray-500 hover:text-brand-500 px-3 py-1 rounded bg-gray-100 dark:bg-gray-800"><i class="fa-solid fa-arrow-right"></i> رجوع</button>
+                <div class="font-bold text-brand-900 dark:text-gold text-lg" id="mushaf-header-title">سورة</div>
+                <button onclick="toggleSurahBookmark()" id="btn-bookmark-surah" class="text-gray-400 hover:text-gold text-xl"><i class="fa-regular fa-bookmark"></i></button>
+            </div>
+
+            <!-- صفحة المصحف -->
+            <div class="mushaf-view rounded-lg p-6 md:p-12 mb-10">
+                <div class="mushaf-frame"></div>
+                
+                <div class="relative z-10 text-center mb-8">
+                    <div class="inline-block border-y-2 border-gold py-2 px-12 mb-2">
+                        <h2 id="surah-title" class="font-ruqaa text-4xl md:text-5xl text-brand-900 dark:text-gold"></h2>
+                    </div>
+                    <p id="surah-info" class="text-sm text-gray-500 dark:text-gray-400 font-semibold"></p>
+                    
+                    <div id="bismillah" class="font-ruqaa text-3xl text-brand-900 dark:text-gold mt-6 hidden">
+                        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                    </div>
+                </div>
+
+                <!-- النص القرآني -->
+                <div id="quran-content" class="quran-text text-2xl md:text-3xl relative z-10"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================== النوافذ المنبثقة (Modals) ================== -->
+    
+    <!-- نافذة الإعدادات -->
+    <div id="settings-modal" class="modal-overlay" onclick="closeModalOnBG(event, 'settings-modal')">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-5 border-b pb-2 dark:border-gray-700">
+                <h3 class="font-bold text-xl"><i class="fa-solid fa-sliders text-brand-500 mr-2"></i> إعدادات القراءة</h3>
+                <button onclick="closeModal('settings-modal')" class="text-gray-500 hover:text-red-500"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="space-y-5">
+                <!-- الوضع الليلي -->
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold">الوضع الليلي (Dark Mode)</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="theme-toggle" class="sr-only peer" onchange="toggleTheme()">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500"></div>
+                    </label>
+                </div>
+
+                <!-- حجم الخط -->
+                <div>
+                    <span class="font-semibold block mb-2">حجم الخط</span>
+                    <div class="flex items-center gap-4 bg-gray-50 dark:bg-gray-800 p-2 rounded-lg">
+                        <button onclick="adjustFontSize(-2)" class="p-2 bg-white dark:bg-gray-700 rounded shadow"><i class="fa-solid fa-minus"></i></button>
+                        <input type="range" id="font-size-slider" min="18" max="60" value="30" class="w-full" onchange="setFontSize(this.value)">
+                        <button onclick="adjustFontSize(2)" class="p-2 bg-white dark:bg-gray-700 rounded shadow"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+
+                <!-- نوع الخط -->
+                <div>
+                    <span class="font-semibold block mb-2">نوع الخط القرآني</span>
+                    <select id="font-family-select" onchange="setFontFamily(this.value)" class="w-full p-2 rounded-lg border dark:border-gray-600 bg-white dark:bg-gray-700">
+                        <option value="'Uthmanic', 'Amiri Quran', serif">عثماني حفص (Uthmanic)</option>
+                        <option value="'Amiri Quran', serif">أميري قرآن (Amiri)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة خيارات الآية (التفسير والتحكم) -->
+    <div id="ayah-modal" class="modal-overlay" onclick="closeModalOnBG(event, 'ayah-modal')">
+        <div class="modal-content relative pt-10">
+            <!-- رقم الآية المزخرف في الأعلى -->
+            <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-white dark:bg-dark-paper p-2 rounded-full border-2 border-gold text-brand-900 dark:text-gold font-bold w-12 h-12 flex items-center justify-center shadow-lg" id="modal-ayah-num"></div>
+            
+            <button onclick="closeModal('ayah-modal')" class="absolute top-3 right-3 text-gray-400 hover:text-red-500"><i class="fa-solid fa-times"></i></button>
+
+            <p id="modal-ayah-text" class="text-center font-amiri text-2xl mb-6 text-brand-900 dark:text-white leading-relaxed"></p>
+
+            <div class="grid grid-cols-3 gap-2 mb-6">
+                <button onclick="playFromModal()" class="flex flex-col items-center p-3 bg-brand-50 dark:bg-gray-800 rounded-xl hover:bg-brand-100 dark:hover:bg-gray-700 transition text-brand-700 dark:text-gold">
+                    <i class="fa-solid fa-play text-xl mb-1"></i> <span class="text-xs font-bold">تلاوة</span>
+                </button>
+                <button onclick="toggleAyahBookmarkFromModal()" id="modal-btn-bookmark" class="flex flex-col items-center p-3 bg-brand-50 dark:bg-gray-800 rounded-xl hover:bg-brand-100 dark:hover:bg-gray-700 transition text-brand-700 dark:text-gold">
+                    <i class="fa-regular fa-bookmark text-xl mb-1"></i> <span class="text-xs font-bold">حفظ</span>
+                </button>
+                <button onclick="copyAyahFromModal()" class="flex flex-col items-center p-3 bg-brand-50 dark:bg-gray-800 rounded-xl hover:bg-brand-100 dark:hover:bg-gray-700 transition text-brand-700 dark:text-gold">
+                    <i class="fa-regular fa-copy text-xl mb-1"></i> <span class="text-xs font-bold">نسخ</span>
+                </button>
+            </div>
+
+            <!-- التفسير الميسر -->
+            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                <h4 class="font-bold text-brand-500 mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">التفسير الميسر:</h4>
+                <p id="modal-tafsir-text" class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify"></p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================== مشغل الصوت (Audio Player) ================== -->
+    <div id="audio-player" class="audio-player shadow-[0_-10px_30px_rgba(0,0,0,0.2)]">
+        <div class="container mx-auto max-w-4xl">
+            <!-- قسم التكرار (مخفي افتراضياً) -->
+            <div id="repeat-settings" class="hidden bg-brand-dark/50 p-3 rounded-lg mb-3 flex flex-wrap gap-3 items-center text-sm border border-brand-700">
+                <div class="flex items-center gap-2">
+                    <label>تكرار الآية:</label>
+                    <select id="repeat-count" class="bg-white text-black px-2 py-1 rounded outline-none">
+                        <option value="1">مرة واحدة</option>
+                        <option value="3">3 مرات</option>
+                        <option value="5">5 مرات</option>
+                        <option value="999">لا نهائي</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2 border-r border-brand-500 pr-3">
+                    <label>نطاق التكرار (من):</label>
+                    <input type="number" id="repeat-from" class="w-14 bg-white text-black px-1 rounded text-center" min="1" placeholder="1">
+                    <label>(إلى):</label>
+                    <input type="number" id="repeat-to" class="w-14 bg-white text-black px-1 rounded text-center" min="1" placeholder="End">
+                </div>
+                <button onclick="applyRepeatSettings()" class="bg-gold text-brand-900 px-3 py-1 rounded font-bold text-xs hover:bg-yellow-400">تطبيق</button>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <!-- معلومات التشغيل -->
+                <div class="flex items-center gap-3 w-1/3">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3596/3596091.png" class="w-10 h-10 filter invert opacity-80" alt="Mic">
+                    <div>
+                        <div class="font-bold text-sm text-gold" id="player-surah-name">الشيخ المنشاوي</div>
+                        <div class="text-xs text-gray-300" id="player-status">توقف</div>
+                    </div>
+                </div>
+
+                <!-- أزرار التحكم -->
+                <div class="flex items-center gap-4 justify-center w-1/3">
+                    <button onclick="playNext()" class="text-white hover:text-gold text-xl"><i class="fa-solid fa-backward-step"></i></button> <!-- RTL -->
+                    <button onclick="togglePlay()" id="btn-play" class="w-12 h-12 bg-gold text-brand-900 rounded-full flex items-center justify-center text-xl hover:scale-105 transition shadow-lg">
+                        <i class="fa-solid fa-play ml-1"></i>
+                    </button>
+                    <button onclick="playPrev()" class="text-white hover:text-gold text-xl"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+
+                <!-- أدوات إضافية -->
+                <div class="flex items-center gap-3 justify-end w-1/3 text-gray-300">
+                    <button onclick="toggleRepeatMenu()" class="hover:text-gold" title="إعدادات الحفظ والتكرار"><i class="fa-solid fa-repeat"></i></button>
+                    <button onclick="stopAudio()" class="hover:text-red-400" title="إيقاف"><i class="fa-solid fa-stop"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <audio id="quran-audio" preload="auto"></audio>
+
+
+    <!-- ================== شريط التنقل السفلي (Bottom Navigation) ================== -->
+    <nav class="bottom-nav">
+        <div class="container mx-auto px-4 flex justify-between max-w-md">
+            <div class="nav-item active" id="nav-home" onclick="switchView('home')">
+                <i class="fa-solid fa-book-quran"></i><span>الفهرس</span>
+            </div>
+            <div class="nav-item" id="nav-search" onclick="switchView('search')">
+                <i class="fa-solid fa-magnifying-glass"></i><span>بحث</span>
+            </div>
+            <div class="nav-item" id="nav-bookmarks" onclick="switchView('bookmarks')">
+                <i class="fa-solid fa-bookmark"></i><span>المحفوظات</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================== البرمجة (JavaScript) ================== -->
+    <script>
+        /* ====== حالة التطبيق (State) ====== */
+        const AppState = {
+            surahs: [],        // قائمة السور
+            currentSurah: null,// بيانات السورة الحالية (نص)
+            currentAudio: null,// بيانات الصوت
+            currentTafsir: null,// بيانات التفسير
+            
+            playingIndex: -1,
+            isPlaying: false,
+            
+            // إعدادات التكرار (للحفظ)
+            repeatMode: { active: false, count: 1, currentLoop: 1, from: 1, to: null },
+            
+            // بيانات المستخدم (Local Storage)
+            settings: JSON.parse(localStorage.getItem('quranSettings')) || {
+                darkMode: false,
+                fontSize: 30,
+                fontFamily: "'Uthmanic', 'Amiri Quran', serif"
+            },
+            bookmarks: JSON.parse(localStorage.getItem('quranBookmarks')) || { surahs: [], ayahs: [] },
+            lastRead: JSON.parse(localStorage.getItem('quranLastRead')) || null,
+            lastStreakDate: localStorage.getItem('quranLastStreakDate') || null
+        };
+
+        const audioElement = document.getElementById('quran-audio');
+        const API_BASE = "https://api.alquran.cloud/v1";
+
+        /* ====== التهيئة الأولى ====== */
+        window.onload = async () => {
+            applySettings();
+            checkDailyStreak();
+            await fetchSurahList();
+        };
+
+        /* ====== دوال الواجهة العامة ====== */
+        const showLoader = (show, msg="جاري التحميل...") => {
+            const l = document.getElementById('loader');
+            l.querySelector('p').innerText = msg;
+            show ? l.classList.remove('hidden') : l.classList.add('hidden');
+        };
+
+        const showToast = (msg) => {
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('opacity-0', '-translate-y-10', 'pointer-events-none');
+            setTimeout(() => {
+                t.classList.add('opacity-0', '-translate-y-10', 'pointer-events-none');
+            }, 3000);
+        };
+
+        const switchView = (viewName) => {
+            // إخفاء كل الشاشات
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            // إظهار الشاشة المطلوبة
+            const view = document.getElementById(`view-${viewName}`);
+            if(view) {
+                view.classList.remove('hidden');
+                view.classList.add('fade-in');
+            }
+            // تحديث شريط التنقل (إلا في حالة المصحف)
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(viewName !== 'mushaf') {
+                document.getElementById(`nav-${viewName}`).classList.add('active');
+            }
+
+            // إخفاء زر وضع الاختبار إلا في المصحف
+            document.getElementById('test-mode-btn').style.display = viewName === 'mushaf' ? 'flex' : 'none';
+
+            if(viewName === 'bookmarks') renderBookmarks();
+            window.scrollTo({top: 0});
+        };
+
+        const convertToArabicNum = (num) => {
+            return num.toString().replace(/[0-9]/g, w => ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'][+w]);
+        };
+
+        /* ====== نظام الإعدادات ====== */
+        const applySettings = () => {
+            if(AppState.settings.darkMode) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+            
+            document.getElementById('theme-toggle').checked = AppState.settings.darkMode;
+            document.documentElement.style.setProperty('--quran-font', AppState.settings.fontFamily);
+            document.getElementById('font-family-select').value = AppState.settings.fontFamily;
+            document.getElementById('font-size-slider').value = AppState.settings.fontSize;
+            
+            const quranContent = document.getElementById('quran-content');
+            if(quranContent) quranContent.style.fontSize = AppState.settings.fontSize + 'px';
+        };
+
+        const saveSettings = () => localStorage.setItem('quranSettings', JSON.stringify(AppState.settings));
+
+        const toggleTheme = () => {
+            AppState.settings.darkMode = document.getElementById('theme-toggle').checked;
+            applySettings(); saveSettings();
+        };
+
+        const setFontSize = (val) => {
+            AppState.settings.fontSize = val;
+            applySettings(); saveSettings();
+        };
+
+        const adjustFontSize = (change) => {
+            let newVal = parseInt(AppState.settings.fontSize) + change;
+            if(newVal >= 18 && newVal <= 60) {
+                document.getElementById('font-size-slider').value = newVal;
+                setFontSize(newVal);
+            }
+        };
+
+        const setFontFamily = (val) => {
+            AppState.settings.fontFamily = val;
+            applySettings(); saveSettings();
+        };
+
+        /* ====== نظام التتبع اليومي (Daily Streak) ====== */
+        const checkDailyStreak = () => {
+            const today = new Date().toDateString();
+            const msgEl = document.getElementById('daily-streak-msg');
+            if(AppState.lastStreakDate === today) {
+                msgEl.innerText = "أحسنت! لقد فتحت مصحفك اليوم. تقبل الله طاعتك.";
+                msgEl.classList.replace('text-brand-100', 'text-yellow-300');
+            } else {
+                AppState.lastStreakDate = today;
+                localStorage.setItem('quranLastStreakDate', today);
+                setTimeout(() => showToast("تذكير: لا تنسَ قراءة وردك اليومي!"), 2000);
+            }
+        };
+
+        const continueReading = () => {
+            if(AppState.lastRead) {
+                openSurah(AppState.lastRead.surahId, AppState.lastRead.ayahIndex);
+            } else {
+                showToast("لا يوجد سجل قراءة سابق، ابدأ من الفاتحة.");
+                openSurah(1);
+            }
+        };
+
+        /* ====== جلب البيانات ====== */
+        const fetchSurahList = async () => {
+            try {
+                showLoader(true, "جلب الفهرس...");
+                const res = await fetch(`${API_BASE}/surah`);
+                const data = await res.json();
+                AppState.surahs = data.data;
+                renderIndex();
+            } catch (e) {
+                showToast("خطأ في الاتصال، تحقق من الإنترنت.");
+            } finally {
+                showLoader(false);
+            }
+        };
+
+        const renderIndex = () => {
+            const grid = document.getElementById('surahs-grid');
+            grid.innerHTML = AppState.surahs.map(s => `
+                <div onclick="openSurah(${s.number})" class="bg-white dark:bg-[#1e1e1e] border border-brand-100 dark:border-gray-800 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-md hover:border-gold transition">
+                    <div class="w-12 h-12 rounded-lg bg-mushaf-paper dark:bg-gray-800 border border-gold flex items-center justify-center font-bold text-brand-900 dark:text-gold shadow-inner">
+                        ${convertToArabicNum(s.number)}
+                    </div>
+                    <div class="flex-grow">
+                        <h4 class="font-ruqaa text-xl text-brand-900 dark:text-white">${s.name}</h4>
+                        <div class="text-xs text-gray-500 mt-1 flex gap-2">
+                            <span>${s.revelationType === 'Meccan' ? 'مكية' : 'مدنية'}</span>
+                            <span>•</span>
+                            <span>${s.numberOfAyahs} آية</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        /* ====== عرض السورة (وضع المصحف) ====== */
+        const openSurah = async (surahId, scrollToAyahIndex = 0) => {
+            stopAudio();
+            document.getElementById('quran-content').classList.remove('test-mode'); // إلغاء وضع الاختبار
+            
+            showLoader(true, "تجهيز المصحف الشريف...");
+            try {
+                // جلب النص (عثماني)، الصوت (المنشاوي)، التفسير (الميسر) بطلب واحد متوازي
+                const [resText, resAudio, resTafsir] = await Promise.all([
+                    fetch(`${API_BASE}/surah/${surahId}/quran-uthmani`),
+                    fetch(`${API_BASE}/surah/${surahId}/ar.minshawimujawwad`),
+                    fetch(`${API_BASE}/surah/${surahId}/ar.muyassar`)
+                ]);
+                
+                const dataText = await resText.json();
+                const dataAudio = await resAudio.json();
+                const dataTafsir = await resTafsir.json();
+
+                AppState.currentSurah = dataText.data;
+                AppState.currentAudio = dataAudio.data;
+                AppState.currentTafsir = dataTafsir.data;
+
+                // إعداد واجهة المصحف
+                document.getElementById('mushaf-header-title').innerText = `سورة ${AppState.currentSurah.name.replace('سُورَةُ', '')}`;
+                document.getElementById('surah-title').innerText = AppState.currentSurah.name;
+                document.getElementById('surah-info').innerText = `${AppState.currentSurah.revelationType === 'Meccan' ? 'مكية' : 'مدنية'} - آياتها ${convertToArabicNum(AppState.currentSurah.numberOfAyahs)}`;
+                
+                // زر الحفظ
+                updateSurahBookmarkBtn(surahId);
+
+                // البسملة
+                const bismillah = document.getElementById('bismillah');
+                if(surahId === 1 || surahId === 9) bismillah.classList.add('hidden');
+                else bismillah.classList.remove('hidden');
+
+                // بناء الآيات مع علامات الأجزاء والصفحات
+                const container = document.getElementById('quran-content');
+                container.innerHTML = '';
+                container.style.fontSize = AppState.settings.fontSize + 'px';
+
+                let currentJuz = -1;
+                let currentHizb = -1;
+                let currentPage = -1;
+
+                AppState.currentSurah.ayahs.forEach((ayah, index) => {
+                    // فواصل المصحف الحقيقي
+                    let markersHtml = '';
+                    if(ayah.juz !== currentJuz) { currentJuz = ayah.juz; markersHtml += `<span class="marker-text">الجزء ${convertToArabicNum(ayah.juz)}</span>`; }
+                    if(ayah.hizbQuarter !== currentHizb && ayah.hizbQuarter % 4 === 1) { currentHizb = ayah.hizbQuarter; markersHtml += `<span class="marker-text">الحزب ${convertToArabicNum(Math.ceil(ayah.hizbQuarter/4))}</span>`; }
+                    if(ayah.page !== currentPage) { currentPage = ayah.page; markersHtml += `<span class="marker-text bg-white dark:bg-gray-800">صـ ${convertToArabicNum(ayah.page)}</span>`; }
+                    
+                    if(markersHtml !== '') container.innerHTML += `<div class="quran-marker">${markersHtml}</div>`;
+
+                    // تنظيف النص من البسملة المدمجة (إلا الفاتحة)
+                    let text = ayah.text;
+                    if(surahId !== 1 && ayah.numberInSurah === 1) {
+                        text = text.replace(/بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ/g, '').trim();
+                        // أحياناً التشكيل يختلف
+                        if(text.startsWith("بِسۡمِ ٱللَّهِ")) text = text.replace(/بِسۡمِ ٱللَّهِ ٱلرَّحۡمَـٰنِ ٱلرَّحِيمِ/g, '').trim();
+                    }
+
+                    container.innerHTML += `
+                        <span class="ayah" id="ayah-${index}" onclick="handleAyahClick(${index})">
+                            <span class="ayah-text">${text}</span>
+                            <span class="ayah-end"><span class="ayah-end-num">${convertToArabicNum(ayah.numberInSurah)}</span></span>
+                        </span>
+                    `;
+                });
+
+                switchView('mushaf');
+
+                // إظهار مشغل الصوت وتحضير إعدادات التكرار
+                document.getElementById('audio-player').classList.add('active');
+                document.getElementById('repeat-to').placeholder = AppState.currentSurah.numberOfAyahs;
+                document.getElementById('repeat-to').max = AppState.currentSurah.numberOfAyahs;
+
+                // تحديث آخر قراءة
+                AppState.lastRead = { surahId: surahId, ayahIndex: 0 };
+                localStorage.setItem('quranLastRead', JSON.stringify(AppState.lastRead));
+
+                if(scrollToAyahIndex > 0) {
+                    setTimeout(() => {
+                        const target = document.getElementById(`ayah-${scrollToAyahIndex}`);
+                        if(target) target.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    }, 500);
+                }
+
+            } catch(e) {
+                console.error(e);
+                showToast("حدث خطأ في تحميل السورة.");
+            } finally {
+                showLoader(false);
+            }
+        };
+
+        /* ====== نظام التفاعل مع الآية (تفسير، حفظ، تلاوة) ====== */
+        let clickedAyahIndex = -1;
+
+        const handleAyahClick = (index) => {
+            // في وضع الاختبار، النقر يكشف الآية فقط ولا يفتح القائمة
+            if(document.getElementById('quran-content').classList.contains('test-mode')) {
+                document.getElementById(`ayah-${index}`).classList.toggle('revealed');
+                return;
+            }
+
+            clickedAyahIndex = index;
+            const ayah = AppState.currentSurah.ayahs[index];
+            const tafsir = AppState.currentTafsir.ayahs[index];
+
+            document.getElementById('modal-ayah-num').innerText = convertToArabicNum(ayah.numberInSurah);
+            document.getElementById('modal-ayah-text').innerText = ayah.text;
+            document.getElementById('modal-tafsir-text').innerText = tafsir.text;
+            
+            // حالة زر الحفظ للآية
+            const isFav = AppState.bookmarks.ayahs.some(a => a.id === ayah.number);
+            const btn = document.getElementById('modal-btn-bookmark');
+            btn.innerHTML = `<i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-bookmark text-xl mb-1"></i> <span class="text-xs font-bold">${isFav ? 'محفوظة' : 'حفظ'}</span>`;
+            if(isFav) btn.classList.add('bg-gold', 'text-white');
+            else btn.classList.remove('bg-gold', 'text-white');
+
+            openModal('ayah-modal');
+        };
+
+        const playFromModal = () => {
+            closeModal('ayah-modal');
+            playAyah(clickedAyahIndex);
+        };
+
+        const copyAyahFromModal = () => {
+            const text = document.getElementById('modal-ayah-text').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("تم نسخ الآية الكريمة.");
+                closeModal('ayah-modal');
+            });
+        };
+
+        /* ====== نظام وضع الاختبار (Memorization) ====== */
+        const toggleTestMode = () => {
+            const container = document.getElementById('quran-content');
+            const btn = document.getElementById('test-mode-btn');
+            container.classList.toggle('test-mode');
+            
+            if(container.classList.contains('test-mode')) {
+                btn.classList.add('bg-brand-500', 'text-white');
+                showToast("وضع الاختبار مُفعل: المس الآية لإظهارها.");
+                // إخفاء كل الآيات
+                document.querySelectorAll('.ayah').forEach(el => el.classList.remove('revealed'));
+            } else {
+                btn.classList.remove('bg-brand-500', 'text-white');
+                showToast("تم إيقاف وضع الاختبار.");
+            }
+        };
+
+        /* ====== مشغل الصوت والتلاوة المتقدمة ====== */
+        const updatePlayerUI = () => {
+            const btn = document.getElementById('btn-play');
+            const status = document.getElementById('player-status');
+            
+            document.querySelectorAll('.ayah').forEach(el => el.classList.remove('playing'));
+
+            if(AppState.isPlaying) {
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                let surahName = AppState.currentSurah.name.replace('سُورَةُ', '');
+                let ayahNum = AppState.currentSurah.ayahs[AppState.playingIndex].numberInSurah;
+                status.innerText = `سورة ${surahName} - آية ${ayahNum}`;
+                
+                // تظليل ومتابعة الآية
+                const activeEl = document.getElementById(`ayah-${AppState.playingIndex}`);
+                if(activeEl) {
+                    activeEl.classList.add('playing');
+                    // كشف الآية تلقائياً أثناء التلاوة إذا كان وضع الاختبار مفعل
+                    activeEl.classList.add('revealed'); 
+                    activeEl.scrollIntoView({behavior: 'smooth', block: 'center'});
+                }
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-play ml-1"></i>';
+                status.innerText = AppState.playingIndex >= 0 ? "متوقف مؤقتاً" : "المنشاوي (مرتل)";
+            }
+        };
+
+        const playAyah = (index) => {
+            // تحديث نقطة البداية للحفظ
+            AppState.lastRead = { surahId: AppState.currentSurah.number, ayahIndex: index };
+            localStorage.setItem('quranLastRead', JSON.stringify(AppState.lastRead));
+
+            AppState.playingIndex = index;
+            audioElement.src = AppState.currentAudio.ayahs[index].audio;
+            audioElement.play();
+            AppState.isPlaying = true;
+            updatePlayerUI();
+        };
+
+        const togglePlay = () => {
+            if(!AppState.currentSurah) return showToast("الرجاء اختيار سورة أولاً.");
+            
+            if(AppState.isPlaying) {
+                audioElement.pause();
+                AppState.isPlaying = false;
+            } else {
+                if(AppState.playingIndex === -1) AppState.playingIndex = 0;
+                if(!audioElement.src) audioElement.src = AppState.currentAudio.ayahs[AppState.playingIndex].audio;
+                audioElement.play();
+                AppState.isPlaying = true;
+            }
+            updatePlayerUI();
+        };
+
+        const stopAudio = () => {
+            audioElement.pause();
+            audioElement.currentTime = 0;
+            AppState.isPlaying = false;
+            AppState.playingIndex = -1;
+            updatePlayerUI();
+        };
+
+        const playNext = () => {
+            if(!AppState.currentSurah) return;
+            let nextIndex = AppState.playingIndex + 1;
+            
+            // منطق التكرار للحفظ
+            if(AppState.repeatMode.active) {
+                if(AppState.repeatMode.currentLoop < AppState.repeatMode.count) {
+                    AppState.repeatMode.currentLoop++;
+                    nextIndex = AppState.playingIndex; // إعادة نفس الآية
+                } else {
+                    AppState.repeatMode.currentLoop = 1; // تصفير العداد للآية التالية
+                    
+                    // إذا كان هناك نطاق محدد وانتهينا منه، نعود للآية الأولى في النطاق
+                    if(AppState.repeatMode.to && AppState.playingIndex + 1 >= AppState.repeatMode.to) {
+                        nextIndex = AppState.repeatMode.from - 1; // العودة لبداية النطاق
+                    }
+                }
+            }
+
+            if(nextIndex < AppState.currentSurah.ayahs.length) {
+                playAyah(nextIndex);
+            } else {
+                stopAudio();
+                showToast("صدق الله العظيم.");
+            }
+        };
+
+        const playPrev = () => {
+            if(AppState.playingIndex > 0) playAyah(AppState.playingIndex - 1);
+            else { audioElement.currentTime = 0; audioElement.play(); }
+        };
+
+        audioElement.addEventListener('ended', playNext);
+
+        /* نظام إعدادات التكرار (A-B Repeat) */
+        const toggleRepeatMenu = () => {
+            document.getElementById('repeat-settings').classList.toggle('hidden');
+        };
+
+        const applyRepeatSettings = () => {
+            const count = parseInt(document.getElementById('repeat-count').value);
+            const from = parseInt(document.getElementById('repeat-from').value) || 1;
+            const to = parseInt(document.getElementById('repeat-to').value) || AppState.currentSurah.numberOfAyahs;
+            
+            if(from > to || to > AppState.currentSurah.numberOfAyahs || from < 1) {
+                return showToast("نطاق التكرار غير صحيح!");
+            }
+
+            AppState.repeatMode = { active: true, count: count, currentLoop: 1, from: from, to: to };
+            showToast(`تم تفعيل التكرار: الآيات (${from} إلى ${to}) بمعدل ${count===999?'مستمر':count+' مرات'}`);
+            toggleRepeatMenu();
+            
+            // البدء من نقطة التكرار
+            playAyah(from - 1);
+        };
+
+        /* ====== محرك البحث ====== */
+        const performSearch = async () => {
+            const query = document.getElementById('search-input').value.trim();
+            if(!query) return showToast("أدخل كلمة للبحث");
+            
+            showLoader(true, "جاري البحث في المصحف...");
+            const resultsContainer = document.getElementById('search-results');
+            const statsContainer = document.getElementById('search-stats');
+            
+            try {
+                // استخدام API البحث (quran-uthmani)
+                const res = await fetch(`${API_BASE}/search/${query}/all/ar.asad`); // API search endpoint
+                const data = await res.json();
+                
+                if(data.code === 200 && data.data.count > 0) {
+                    statsContainer.innerHTML = `تم العثور على <span class="font-bold text-brand-500">${data.data.count}</span> نتيجة`;
+                    resultsContainer.innerHTML = data.data.matches.map(match => {
+                        // تمييز كلمة البحث
+                        const regex = new RegExp(query, 'gi');
+                        const highlightedText = match.text.replace(regex, `<span class="bg-gold text-brand-900 px-1 rounded font-bold">$&</span>`);
+                        
+                        return `
+                        <div onclick="openSurah(${match.surah.number}, ${match.numberInSurah - 1})" class="bg-white dark:bg-dark-paper border border-gray-100 dark:border-gray-800 p-4 rounded-xl cursor-pointer hover:shadow-md transition">
+                            <div class="flex justify-between items-center mb-2 text-xs text-brand-500 dark:text-gold font-bold">
+                                <span>سورة ${match.surah.name.replace('سُورَةُ', '')}</span>
+                                <span>آية ${match.numberInSurah}</span>
+                            </div>
+                            <p class="font-quran text-xl text-brand-900 dark:text-white leading-loose text-right">${highlightedText}</p>
+                        </div>
+                    `}).join('');
+                } else {
+                    statsContainer.innerHTML = '';
+                    resultsContainer.innerHTML = `<div class="text-center text-gray-500 py-10">لم يتم العثور على نتائج مطابقة</div>`;
+                }
+            } catch (e) {
+                showToast("حدث خطأ أثناء البحث.");
+            } finally {
+                showLoader(false);
+            }
+        };
+
+        // تفعيل البحث عند الضغط على Enter
+        document.getElementById('search-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') performSearch();
+        });
+
+
+        /* ====== نظام المفضلات (Bookmarks) ====== */
+        const toggleSurahBookmark = () => {
+            if(!AppState.currentSurah) return;
+            const surahObj = { id: AppState.currentSurah.number, name: AppState.currentSurah.name };
+            
+            const index = AppState.bookmarks.surahs.findIndex(s => s.id === surahObj.id);
+            if(index > -1) {
+                AppState.bookmarks.surahs.splice(index, 1);
+                showToast("تم إزالة السورة من المحفوظات");
+            } else {
+                AppState.bookmarks.surahs.push(surahObj);
+                showToast("تم حفظ السورة للرجوع إليها");
+            }
+            
+            localStorage.setItem('quranBookmarks', JSON.stringify(AppState.bookmarks));
+            updateSurahBookmarkBtn(surahObj.id);
+        };
+
+        const updateSurahBookmarkBtn = (id) => {
+            const btn = document.getElementById('btn-bookmark-surah');
+            const isFav = AppState.bookmarks.surahs.some(s => s.id === id);
+            btn.innerHTML = `<i class="${isFav ? 'fa-solid text-gold' : 'fa-regular'} fa-bookmark"></i>`;
+        };
+
+        const toggleAyahBookmarkFromModal = () => {
+            const ayah = AppState.currentSurah.ayahs[clickedAyahIndex];
+            const surahName = AppState.currentSurah.name;
+            const ayahObj = { 
+                id: ayah.number, 
+                surahId: AppState.currentSurah.number, 
+                surahName: surahName, 
+                numberInSurah: ayah.numberInSurah, 
+                text: ayah.text 
+            };
+
+            const index = AppState.bookmarks.ayahs.findIndex(a => a.id === ayahObj.id);
+            const btn = document.getElementById('modal-btn-bookmark');
+            
+            if(index > -1) {
+                AppState.bookmarks.ayahs.splice(index, 1);
+                btn.innerHTML = `<i class="fa-regular fa-bookmark text-xl mb-1"></i> <span class="text-xs font-bold">حفظ</span>`;
+                btn.classList.remove('bg-gold', 'text-white');
+                showToast("تم الإزالة من المفضلات");
+            } else {
+                AppState.bookmarks.ayahs.push(ayahObj);
+                btn.innerHTML = `<i class="fa-solid fa-bookmark text-xl mb-1"></i> <span class="text-xs font-bold">محفوظة</span>`;
+                btn.classList.add('bg-gold', 'text-white');
+                showToast("تمت الإضافة للمفضلات");
+            }
+            localStorage.setItem('quranBookmarks', JSON.stringify(AppState.bookmarks));
+        };
+
+        const renderBookmarks = () => {
+            const container = document.getElementById('bookmarks-container');
+            const activeTab = document.getElementById('tab-surahs').classList.contains('border-brand-500') ? 'surahs' : 'ayahs';
+            
+            container.innerHTML = '';
+            
+            if(activeTab === 'surahs') {
+                if(AppState.bookmarks.surahs.length === 0) container.innerHTML = '<p class="text-center text-gray-500 mt-10">لا يوجد سور محفوظة.</p>';
+                AppState.bookmarks.surahs.forEach(s => {
+                    container.innerHTML += `
+                        <div onclick="openSurah(${s.id})" class="bg-white dark:bg-[#1e1e1e] border border-gray-100 dark:border-gray-800 p-4 rounded-xl flex justify-between items-center cursor-pointer hover:shadow-md">
+                            <span class="font-ruqaa text-xl text-brand-900 dark:text-gold">${s.name}</span>
+                            <i class="fa-solid fa-chevron-left text-gray-300"></i>
+                        </div>
+                    `;
+                });
+            } else {
+                if(AppState.bookmarks.ayahs.length === 0) container.innerHTML = '<p class="text-center text-gray-500 mt-10">لا يوجد آيات مفضلة.</p>';
+                AppState.bookmarks.ayahs.forEach(a => {
+                    container.innerHTML += `
+                        <div onclick="openSurah(${a.surahId}, ${a.numberInSurah - 1})" class="bg-white dark:bg-[#1e1e1e] border border-gray-100 dark:border-gray-800 p-4 rounded-xl cursor-pointer hover:shadow-md">
+                            <div class="text-xs text-brand-500 dark:text-gold mb-2 font-bold">${a.surahName} - آية ${a.numberInSurah}</div>
+                            <p class="font-quran text-lg text-brand-900 dark:text-white truncate">${a.text}</p>
+                        </div>
+                    `;
+                });
+            }
+        };
+
+        const switchBookmarkTab = (tab) => {
+            const btnS = document.getElementById('tab-surahs');
+            const btnA = document.getElementById('tab-ayahs');
+            
+            if(tab === 'surahs') {
+                btnS.classList.replace('border-transparent', 'border-brand-500');
+                btnS.classList.replace('text-gray-500', 'text-brand-500');
+                btnA.classList.replace('border-brand-500', 'border-transparent');
+                btnA.classList.replace('text-brand-500', 'text-gray-500');
+            } else {
+                btnA.classList.replace('border-transparent', 'border-brand-500');
+                btnA.classList.replace('text-gray-500', 'text-brand-500');
+                btnS.classList.replace('border-brand-500', 'border-transparent');
+                btnS.classList.replace('text-brand-500', 'text-gray-500');
+            }
+            renderBookmarks();
+        };
+
+        /* ====== النوافذ المنبثقة ====== */
+        const openModal = (id) => document.getElementById(id).classList.add('show');
+        const closeModal = (id) => document.getElementById(id).classList.remove('show');
+        const closeModalOnBG = (e, id) => { if(e.target.id === id) closeModal(id); };
+
+    </script>
+</body>
+</html>
