@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta http-equiv="refresh" content="7; url=نعتمد.html">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرحبا</title>
+    <!-- استدعاء مكتبة Tailwind CSS للتنسيق السريع -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- استدعاء خطوط إسلامية عربية من Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-green: #10b981; /* أخضر زمردي */
+            --bg-color: #ffffff; /* خلفية بيضاء */
+            --pattern-color: #d1fae5; /* أخضر فاتح جداً للنقوش */
+        }
+
+        body {
+            font-family: 'Amiri', serif;
+            background-color: var(--bg-color);
+            /* نمط خلفية إسلامي خفيف (نقاط وزخارف هندسية مبسطة) */
+            background-image: radial-gradient(var(--pattern-color) 2px, transparent 2px), radial-gradient(var(--pattern-color) 2px, transparent 2px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .title-font {
+            font-family: 'Aref Ruqaa', serif;
+        }
+
+        /* تأثير ظهور البسملة */
+        .bismillah {
+            opacity: 0;
+            animation: fadeIn 2s ease-in-out 0.5s forwards;
+        }
+
+        /* تأثير كتابة كلمة "سراط" من اليمين لليسار ببطء */
+        .writing-effect {
+            /* إخفاء الكلمة مبدئياً من اليسار */
+            clip-path: inset(0 0 0 100%);
+            /* استخدام توقيت cubic-bezier لمحاكاة سرعة القلم */
+            animation: writeRTL 4s cubic-bezier(0.4, 0, 0.2, 1) 2s forwards;
+            /* توهج روحاني حول الكلمة */
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.4), 0 0 50px rgba(16, 185, 129, 0.2);
+        }
+
+        @keyframes writeRTL {
+            0% {
+                clip-path: inset(0 0 0 100%);
+            }
+            100% {
+                clip-path: inset(0 0 0 0); /* إظهار الكلمة بالكامل */
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* تأثير ظهور العناصر السفلية (التحميل) */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 1.5s ease-out 5s forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* تأثير دائرة التحميل */
+        .spinner {
+            border-top-color: var(--primary-green);
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* إضاءة خلفية دائرية خفيفة */
+        .glow-bg {
+            position: absolute;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, rgba(255,255,255,0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col items-center justify-center relative text-emerald-950">
+    
+    <!-- إضاءة خلفية -->
+    <div class="glow-bg"></div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="z-10 flex flex-col items-center">
+        
+        <!-- البسملة -->
+        <p class="bismillah text-emerald-700/80 text-xl md:text-2xl mb-8 tracking-wide">
+            بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+        </p>
+
+        <!-- الكلمة المطلوبة (سراط) -->
+        <!-- أضفنا مساحات داخلية py-4 px-8 لمنع قص أطراف الحروف أثناء الأنيميشن -->
+        <h1 class="title-font text-8xl md:text-[10rem] text-emerald-500 font-bold mb-10 writing-effect py-4 px-8">
+            محراب
+        </h1>
+
+        <!-- قسم التحميل السفلي -->
+        <div class="fade-in-up flex flex-col items-center mt-4">
+            <div class="w-10 h-10 border-4 border-emerald-100 border-t-emerald-500 rounded-full spinner mb-4"></div>
+            <p class="text-emerald-700/80 text-sm md:text-base">جاري تهيئة التطبيق...</p>
+        </div>
+
+    </div>
+
+    <!-- زوايا زخرفية في حواف الشاشة (طابع إسلامي) -->
+    <div class="absolute top-0 right-0 w-24 h-24 border-t-2 border-r-2 border-emerald-300/60 m-6 rounded-tr-3xl"></div>
+    <div class="absolute top-0 left-0 w-24 h-24 border-t-2 border-l-2 border-emerald-300/60 m-6 rounded-tl-3xl"></div>
+    <div class="absolute bottom-0 right-0 w-24 h-24 border-b-2 border-r-2 border-emerald-300/60 m-6 rounded-br-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-24 h-24 border-b-2 border-l-2 border-emerald-300/60 m-6 rounded-bl-3xl"></div>
+
+</body>
+</html>
