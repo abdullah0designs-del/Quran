@@ -136,7 +136,9 @@
     </style>
 </head>
 <body class="antialiased selection:bg-primary selection:text-white">
-
+    <div id="splash-screen">
+        <iframe src="one.html" style="border:none;width:100%;height:100vh;"></iframe>
+    </div>
     <!-- Top Navigation -->
     <header class="fixed top-0 left-0 right-0 h-16 bg-surface shadow-sm z-50 flex items-center justify-between px-4 md:px-8 transition-colors duration-300">
         <div class="flex items-center gap-3">
@@ -1022,6 +1024,10 @@
         // Run Init
         document.addEventListener('DOMContentLoaded', init);
 
+        
+        setTimeout(function(){
+        document.getElementById("splash-screen").style.display="none";
+        },8000);
     </script>
 </body>
 </html>
